@@ -1,8 +1,10 @@
 /* Debitos Page Styles - Modern Design */
 :root {
     --primary-color: #000000;
-    --accent-color: #e5ff51; /* Mantendo o verde neon da marca */
-    --bg-color: #f3f4f6; /* Cinza claro moderno */
+    --accent-color: #e5ff51;
+    /* Mantendo o verde neon da marca */
+    --bg-color: #f3f4f6;
+    /* Cinza claro moderno */
     --card-bg: #ffffff;
     --text-primary: #111827;
     --text-secondary: #4b5563;
@@ -26,7 +28,8 @@ body {
     background: var(--bg-color);
     color: var(--text-primary);
     min-height: 100vh;
-    padding-bottom: 120px; /* Espaço para o footer fixo */
+    padding-bottom: 120px;
+    /* Espaço para o footer fixo */
 }
 
 /* Appbar */
@@ -86,7 +89,8 @@ body {
 
 /* Hero Section */
 .hero-strap {
-    display: none; /* Removendo o hero antigo para limpar o visual */
+    display: none;
+    /* Removendo o hero antigo para limpar o visual */
 }
 
 /* Search Box Redesign */
@@ -270,7 +274,8 @@ body {
 }
 
 .row__total {
-   display: none; /* Simplificando visual */
+    display: none;
+    /* Simplificando visual */
 }
 
 /* Bulk Selection */
@@ -472,7 +477,7 @@ body {
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--border-color);
     padding: 16px 20px 24px;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
     z-index: 99;
 }
 
@@ -508,7 +513,9 @@ body {
 }
 
 /* Helpers */
-.hidden { display: none !important; }
+.hidden {
+    display: none !important;
+}
 
 /* Loader */
 .qr-loader {
@@ -521,8 +528,87 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* Pix Copia e Cola Moderno */
+.pix-copia-box {
+    margin-top: 24px;
+    text-align: left;
+}
+
+.pix-copia-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.pix-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #f3f4f6;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0;
+    overflow: hidden;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.pix-input-wrapper:hover {
+    border-color: #d1d5db;
+}
+
+.pix-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 14px 16px;
+    font-family: 'Courier New', Courier, monospace;
+    /* Monospace para código */
+    font-size: 13px;
+    color: var(--text-secondary);
+    outline: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-copy-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: #fff;
+    border: none;
+    border-left: 1px solid var(--border-color);
+    cursor: pointer;
+    color: var(--primary-color);
+    transition: background 0.2s;
+}
+
+.btn-copy-icon:hover {
+    background: #f9fafb;
+    color: #000;
+}
+
+.btn-copy-icon:active {
+    background: #e5e7eb;
+}
+
+.pix-helper {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-align: center;
 }
 
 @media (max-width: 600px) {
@@ -530,11 +616,11 @@ body {
         gap: 12px;
         padding: 16px;
     }
-    
+
     .item-price {
         font-size: 16px;
     }
-    
+
     .btn-continue--inline {
         padding: 0 24px;
         font-size: 15px;
@@ -543,8 +629,10 @@ body {
     .resumo-info strong {
         font-size: 18px;
     }
-    
-    .resumo-placa, .resumo-list {
-        display: none; /* Hide details in footer on mobile to clean up */
+
+    .resumo-placa,
+    .resumo-list {
+        display: none;
+        /* Hide details in footer on mobile to clean up */
     }
 }

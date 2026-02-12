@@ -267,15 +267,28 @@
                 <img id="pixImg" src="" alt="QR Code Pix" style="width:100%; height:100%; object-fit:contain;">
             </div>
 
-            <p class="pix-hint">
-                Copie o código Pix e realize o pagamento no app do seu banco ou carteira digital
-            </p>
-
-            <textarea id="pixCopia" class="code-box" rows="4" readonly></textarea>
+            <div class="pix-copia-box">
+                <div class="pix-copia-header">
+                    <span>Pix Copia e Cola</span>
+                </div>
+                <div class="pix-input-wrapper">
+                    <input type="text" id="pixCopia" class="pix-input" readonly value="Aguardando geração..." />
+                    <button type="button" id="btnCopyPix" class="btn-copy-icon" onclick="copiarPix()"
+                        aria-label="Copiar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="pix-helper">Clique no ícone para copiar o código</p>
+            </div>
 
             <div class="btn-row">
-                <button type="button" id="btnCopyPix" class="btn-continue" onclick="copiarPix()">Copiar código
-                    Pix</button>
+                <!-- Botão principal removido pois o ícone já faz a função, ou mantemos como secundário se o usuário preferir, 
+                      mas para modernizar, o input com botão lateral é padrão. 
+                      Vou remover o botão grande duplicado e deixar apenas a ação no input para ficar mais limpo. -->
             </div>
         </section>
         <br />
@@ -530,10 +543,38 @@
         });
 
         function copiarPix() {
-            const textarea = document.getElementById("pixCopia");
-            textarea.select();
-            document.execCommand('copy');
-            Swal.fire('Sucesso', 'Código Pix copiado com sucesso.', 'success');
+            const input = document.getElementById("pixCopia");
+
+            // Mobile frendly selection
+            input.select();
+            input.setSelectionRange(0, 99999);
+
+            navigator.clipboard.writeText(input.value).then(() => {
+                // Feedback visual no botão
+                const btn = document.getElementById("btnCopyPix");
+                const originalIcon = btn.innerHTML;
+
+                btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+                Swal.fire({
+                    title: 'Copiado!',
+                    text: 'Código Pix copiado para a área de transferência.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+
+                setTimeout(() => {
+                    btn.innerHTML = originalIcon;
+                }, 2000);
+            }).catch(err => {
+                console.error('Erro ao copiar: ', err);
+                // Fallback
+                document.execCommand('copy');
+                Swal.fire('Copiado', 'Código copiado.', 'success');
+            });
         }
 
         /* ===============================
