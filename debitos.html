@@ -273,16 +273,16 @@
                 </div>
                 <div class="pix-input-wrapper">
                     <input type="text" id="pixCopia" class="pix-input" readonly value="Aguardando geração..." />
-                    <button type="button" id="btnCopyPix" class="btn-copy-icon" onclick="copiarPix()"
-                        aria-label="Copiar">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                    </button>
                 </div>
-                <p class="pix-helper">Clique no ícone para copiar o código</p>
+                <!-- Botão explícito abaixo -->
+                <button type="button" id="btnCopyPix" class="btn-copy-full" onclick="copiarPix()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copiar código Pix
+                </button>
             </div>
 
             <div class="btn-row">
@@ -552,9 +552,9 @@
             navigator.clipboard.writeText(input.value).then(() => {
                 // Feedback visual no botão
                 const btn = document.getElementById("btnCopyPix");
-                const originalIcon = btn.innerHTML;
+                const originalHtml = btn.innerHTML;
 
-                btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copiado!`;
 
                 Swal.fire({
                     title: 'Copiado!',
@@ -567,7 +567,7 @@
                 });
 
                 setTimeout(() => {
-                    btn.innerHTML = originalIcon;
+                    btn.innerHTML = originalHtml;
                 }, 2000);
             }).catch(err => {
                 console.error('Erro ao copiar: ', err);
